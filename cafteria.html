@@ -1,0 +1,408 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>School Cafeteria — Order & Receipt</title>
+  <style>
+    :root{--accent:#2b6cb0;--muted:#666}
+    body{font-family:Inter,system-ui,Segoe UI,Arial;margin:0;background:#f6f8fb;color:#111}
+    header{background:linear-gradient(90deg,#1e3a8a,#2b6cb0);color:#fff;padding:18px 20px;display:flex;align-items:center;justify-content:space-between}
+    header h1{margin:0;font-size:18px}
+    .container{max-width:1000px;margin:22px auto;padding:0 16px}
+    .grid{display:grid;grid-template-columns:1fr 360px;gap:18px}
+    .card{background:#fff;border-radius:10px;box-shadow:0 6px 18px rgba(20,30,60,0.06);padding:14px}
+    .menu-list{display:grid;gap:10px}
+    .food{display:flex;align-items:center;gap:12px;padding:10px;border-radius:8px;border:1px solid #eef2f6}
+    .food img{width:72px;height:56px;object-fit:cover;border-radius:6px}
+    .food .meta{flex:1}
+    .food .meta h3{margin:0;font-size:15px}
+    .food .meta p{margin:6px 0 0;font-size:13px;color:var(--muted)}
+    .food .actions{display:flex;flex-direction:column;gap:8px}
+    button{background:var(--accent);color:#fff;border:none;padding:8px 10px;border-radius:8px;cursor:pointer}
+    button.ghost{background:#eef4ff;color:var(--accent);border:1px solid rgba(43,108,176,0.12)}
+    .cart{display:flex;flex-direction:column;gap:10px}
+    .cart .item{display:flex;justify-content:space-between;align-items:center}
+    .cart .item span{font-size:14px}
+    .small{font-size:13px;color:var(--muted)}
+    .totals{display:flex;justify-content:space-between;border-top:1px dashed #eee;padding-top:8px}
+    .checkout{display:flex;gap:8px}
+    .admin-bar{display:flex;gap:8px;align-items:center}
+    .badge{padding:4px 8px;border-radius:8px;background:#e6f6ff;color:#0b4a6f;font-weight:600}
+    .unavailable{opacity:0.45}
+    /* modal */
+    .modal{position:fixed;inset:0;background:rgba(10,12,20,0.4);display:none;align-items:center;justify-content:center;padding:20px}
+    .modal.show{display:flex}
+    .modal .win{width:520px;max-width:100%;background:#fff;padding:16px;border-radius:10px}
+    label{font-size:13px;display:block;margin:8px 0 6px}
+    input,select{width:100%;padding:8px;border-radius:8px;border:1px solid #dde6f0}
+    footer{Padding:14px;text-align:center;color:#6b7280}
+    .admin-panel{display:grid;gap:8px}
+    .search-receipt{display:flex;gap:8px}
+    .note{font-size:13px;color:#444}
+    @media(max-width:880px){.grid{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <header>
+    <h1>School Cafeteria — Online Orders</h1>
+    <div class="admin-bar">
+      <span class="badge">Student mode</span>
+      <button class="ghost" id="adminBtn">Staff / Admin</button>
+    </div>
+  </header>
+
+  <div class="container">
+    <div class="grid">
+      <main class="card">
+        <h2 style="margin-top:0">Menu</h2>
+        <p class="small">Choose items and add to cart. Items show availability live.</p>
+        <div id="menu" class="menu-list"></div>
+      </main>
+
+      <aside class="card">
+        <h3 style="margin-top:0">Your Cart</h3>
+        <div id="cart" class="cart"></div>
+        <div class="totals">
+          <div class="small">Total</div>
+          <div id="totalAmt">KES 0.00</div>
+        </div>
+        <div style="margin-top:12px;display:flex;gap:8px">
+          <button id="checkoutBtn">Checkout</button>
+          <button id="clearCart" class="ghost">Clear</button>
+        </div>
+
+        <hr style="margin:14px 0" />
+        <div>
+          <h4 style="margin:0 0 6px">Receipt / Late pickup</h4>
+          <div class="small">If you arrived late, show this receipt at the counter. Staff can verify orders by Order ID.</div>
+          <div style="margin-top:8px" class="search-receipt">
+            <input id="lookupId" placeholder="Enter Order ID to view" />
+            <button id="lookupBtn" class="ghost">Lookup</button>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <!-- Checkout modal -->
+  <div id="checkoutModal" class="modal">
+    <div class="win">
+      <h3>Checkout</h3>
+      <div id="checkoutSummary"></div>
+      <label>Student name</label>
+      <input id="studentName" placeholder="Your full name" />
+      <label>Payment method</label>
+      <select id="paymentMethod">
+        <option value="mpesa">Mpesa (simulate)</option>
+        <option value="wallet">School Wallet (simulate)</option>
+        <option value="cash">Pay at Counter (receipt reserved)</option>
+      </select>
+      <div id="paymentExtra"></div>
+      <div style="display:flex;gap:8px;margin-top:10px">
+        <button id="payNow">Pay / Confirm</button>
+        <button id="cancelPay" class="ghost">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Receipt modal -->
+  <div id="receiptModal" class="modal">
+    <div class="win" id="receiptWin">
+      <!-- filled dynamically -->
+    </div>
+  </div>
+
+  <!-- Admin login panel -->
+  <div id="adminModal" class="modal">
+    <div class="win">
+      <h3>Staff / Admin</h3>
+      <div style="font-size:13px;margin-bottom:8px">Enter staff password to manage menu (default: <strong>admin123</strong>)</div>
+      <input id="adminPass" placeholder="password" />
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <button id="adminLogin">Login</button>
+        <button id="adminCancel" class="ghost">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Admin panel (after login) -->
+  <div id="adminPanelModal" class="modal">
+    <div class="win">
+      <h3>Admin — Manage Menu</h3>
+      <div class="admin-panel">
+        <div style="display:flex;gap:8px">
+          <input id="newItemName" placeholder="New item name" />
+          <input id="newItemPrice" placeholder="Price (KES)" />
+          <button id="addItem">Add</button>
+        </div>
+        <div id="adminList"></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">
+          <div class="small">Default admin password: <strong>admin123</strong></div>
+          <button id="adminLogout" class="ghost">Logout</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    Built with HTML/CSS/JS • Open-source prototype • Open the file in any browser to use
+  </footer>
+
+  <script>
+    // --- Data model ---
+    const DEFAULT_MENU = [
+      {id:1,name:'Fried Pilau',price:120,available:true,img:'images/FriedPilau.jpg'},
+      {id:2,name:'Ugali + Sukuma',price:100,available:true,img:'images/UgaliSukumaWiki.jpg'},
+      {id:3,name:'Chapati',price:60,available:true,img:'images/Chapati.jpg'},
+      {id:4,name:'Vegetable Salad',price:80,available:true,img:'images/VeggieSalad.jpg'},
+      {id:5,name:'Samosa',price:30,available:true,img:'images/Samosa.jpg'},
+    ];
+localStorage.clear();
+console.log("LocalStorage Cleared")
+    // helpers
+    const $ = sel => document.querySelector(sel);
+    const $$ = sel => document.querySelectorAll(sel);
+
+    // storage
+    function loadMenu(){
+      const raw = localStorage.getItem('cafeteria_menu');
+      if(raw) return JSON.parse(raw);
+      localStorage.setItem('cafeteria_menu',JSON.stringify(DEFAULT_MENU));
+      return JSON.parse(localStorage.getItem('cafeteria_menu'));
+    }
+    function saveMenu(menu){ localStorage.setItem('cafeteria_menu',JSON.stringify(menu)); }
+
+    function loadOrders(){
+      const raw = localStorage.getItem('cafeteria_orders');
+      if(raw) return JSON.parse(raw);
+      localStorage.setItem('cafeteria_orders',JSON.stringify([]));
+      return [];
+    }
+    function saveOrders(o){ localStorage.setItem('cafeteria_orders',JSON.stringify(o)); }
+
+    // state
+    let menu = loadMenu();
+    let cart = {};
+
+    // render menu
+    function renderMenu(){
+      const root = $('#menu'); root.innerHTML='';
+      menu.forEach(it=>{
+        const el = document.createElement('div'); el.className='food'+(it.available? '':' unavailable');
+        el.innerHTML = `
+          <img src="${it.img || ('https://placehold.co/120x80?text='+encodeURIComponent(it.name))}" alt="${it.name}"/>
+          <div class="meta">
+            <h3>${it.name}</h3>
+            <p class="small">KES ${it.price.toFixed(2)} ${it.available? '• Available':'• Unavailable'}</p>
+          </div>
+          <div class="actions">
+            <div style="display:flex;gap:6px">
+              <button ${it.available? '':'disabled'} data-id="${it.id}" class="addBtn">Add</button>
+              <button class="ghost" data-id="${it.id}" onclick="toggleQuick(${it.id})">Quick+</button>
+            </div>
+            <div class="small">ID: ${it.id}</div>
+          </div>
+        `;
+        root.appendChild(el);
+      });
+      // add handlers
+      document.querySelectorAll('.addBtn').forEach(b=>b.addEventListener('click',e=>{
+        const id = Number(e.target.dataset.id); addToCart(id,1);
+      }));
+    }
+
+    // quick toggle adds 1 even if unavailable (for testing)
+    window.toggleQuick = function(id){ addToCart(id,1); }
+
+    function addToCart(id,qty){
+      const item = menu.find(m=>m.id===id);
+      if(!item){ alert('Item not found'); return; }
+      if(!item.available){ alert('Sorry — this item is currently unavailable'); return; }
+      cart[id] = (cart[id]||0)+qty;
+      renderCart();
+    }
+
+    function renderCart(){
+      const root = $('#cart'); root.innerHTML='';
+      let total=0;
+      Object.keys(cart).forEach(k=>{
+        const id = Number(k); const qty = cart[k];
+        const it = menu.find(m=>m.id===id);
+        if(!it) return;
+        const line = document.createElement('div'); line.className='item';
+        line.innerHTML = `<div><strong>${it.name}</strong> <span class="small">x${qty}</span></div><div><span>KES ${(it.price*qty).toFixed(2)}</span> <button class="ghost" data-id="${id}">-</button></div>`;
+        root.appendChild(line);
+      });
+      // attach decrement
+      root.querySelectorAll('button.ghost').forEach(b=>b.addEventListener('click',e=>{
+        const id = Number(e.target.dataset.id); if(!cart[id]) return; cart[id]--; if(cart[id]<=0) delete cart[id]; renderCart();
+      }));
+      // total
+      total = Object.keys(cart).reduce((s,k)=>{
+        const it = menu.find(m=>m.id===Number(k)); return s + (it.price*cart[k]);
+      },0);
+      $('#totalAmt').textContent = 'KES ' + total.toFixed(2);
+      if(Object.keys(cart).length===0) root.innerHTML = '<div class="small">Cart is empty</div>';
+    }
+
+    // clear cart
+    $('#clearCart').addEventListener('click',()=>{cart={};renderCart();});
+
+    // checkout
+    $('#checkoutBtn').addEventListener('click',()=>{
+      if(Object.keys(cart).length===0){ alert('Cart empty'); return; }
+      const summary = document.getElementById('checkoutSummary');
+      summary.innerHTML = Object.keys(cart).map(k=>{
+        const it = menu.find(m=>m.id===Number(k));
+        return `<div style="display:flex;justify-content:space-between"><div>${it.name} x${cart[k]}</div><div>KES ${(it.price*cart[k]).toFixed(2)}</div></div>`
+      }).join('');
+      // show payment extra
+      $('#paymentExtra').innerHTML = '';
+      $('#studentName').value='';
+      $('#paymentMethod').value='mpesa';
+      $('#checkoutModal').classList.add('show');
+    });
+
+    $('#cancelPay').addEventListener('click',()=>{ $('#checkoutModal').classList.remove('show'); });
+
+    // change payment method -> show phone input for mpesa
+    $('#paymentMethod').addEventListener('change',()=>{
+      const val = $('#paymentMethod').value;
+      if(val==='mpesa'){
+        $('#paymentExtra').innerHTML = '<label>Mpesa phone (07..)</label><input id="mpesaPhone" placeholder="07xxxxxxxx" />';
+      }else if(val==='wallet'){
+        $('#paymentExtra').innerHTML = '<label>Wallet ID</label><input id="walletId" placeholder="Student wallet ID" />';
+      }else{
+        $('#paymentExtra').innerHTML = '<div class="small">You will pay in cash when you collect. Receipt will reserve your food.</div>';
+      }
+    });
+    // fire initial
+    $('#paymentMethod').dispatchEvent(new Event('change'));
+
+    function genOrderId(){ return 'ORD-'+Date.now().toString(36).toUpperCase().slice(-8); }
+
+    $('#payNow').addEventListener('click',()=>{
+      const name = $('#studentName').value.trim(); if(!name){ alert('Please enter student name'); return; }
+      const method = $('#paymentMethod').value;
+      // validate payment details (simulate)
+      if(method==='mpesa'){ const ph = $('#mpesaPhone').value||''; if(!/^07\d{8}$/.test(ph)){alert('Enter phone like 07xxxxxxxx'); return;} }
+      if(method==='wallet'){ const wid = $('#walletId').value||''; if(wid.length<3){ alert('Enter wallet ID'); return; } }
+
+      // ensure availability again (final check)
+      for(const k of Object.keys(cart)){
+        const it = menu.find(m=>m.id===Number(k)); if(!it || !it.available){ alert(`Sorry ${it?it.name:'an item'} is unavailable — remove it.`); return; }
+      }
+
+      const orders = loadOrders();
+      const items = Object.keys(cart).map(k=>({id:Number(k),qty:cart[k],name:menu.find(m=>m.id===Number(k)).name,unit:menu.find(m=>m.id===Number(k)).price}));
+      const total = items.reduce((s,it)=>s + it.qty*it.unit,0);
+      const order = {
+        id: genOrderId(), student:name, items, total, method, time: new Date().toISOString(), served:false
+      };
+      orders.push(order); saveOrders(orders);
+      $('#checkoutModal').classList.remove('show');
+      cart = {}; renderCart();
+      showReceipt(order);
+    });
+
+    // show receipt
+    function showReceipt(order){
+      const win = $('#receiptWin');
+      win.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center"><h3>Receipt</h3><div class="small">${new Date(order.time).toLocaleString()}</div></div>
+        <div style="margin:12px 0">Order ID: <strong>${order.id}</strong></div>
+        <div><strong>${order.student}</strong></div>
+        <div style="margin-top:8px">${order.items.map(it=>`<div style="display:flex;justify-content:space-between"><div>${it.name} x${it.qty}</div><div>KES ${(it.unit*it.qty).toFixed(2)}</div></div>`).join('')}</div>
+        <div class="totals" style="margin-top:8px"><div>Total</div><div>KES ${order.total.toFixed(2)}</div></div>
+        <div style="margin-top:8px" class="small">Payment: ${order.method}</div>
+        <div style="display:flex;gap:8px;margin-top:12px">
+          <button id="printReceipt">Print</button>
+          <button id="closeReceipt" class="ghost">Close</button>
+        </div>`;
+      $('#receiptModal').classList.add('show');
+
+      $('#printReceipt').addEventListener('click',()=>{
+        const p = window.open('','_blank');
+        p.document.write('<pre style="font-family:Arial">'+win.innerHTML+'</pre>');
+        p.document.close();
+        p.print();
+        p.close();
+      });
+      $('#closeReceipt').addEventListener('click',()=>{ $('#receiptModal').classList.remove('show'); });
+    }
+
+    // lookup order by ID (for late pickup & staff)
+    $('#lookupBtn').addEventListener('click',()=>{
+      const id = $('#lookupId').value.trim(); if(!id){ alert('Enter Order ID'); return; }
+      const orders = loadOrders(); const ord = orders.find(o=>o.id===id);
+      if(!ord){ alert('Order not found'); return; }
+      showStaffReceipt(ord,true);
+    });
+
+    function showStaffReceipt(order,allowServe){
+      // similar to showReceipt but with Serve button
+      const win = $('#receiptWin');
+      win.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center"><h3>Order</h3><div class="small">${new Date(order.time).toLocaleString()}</div></div>
+        <div style="margin:12px 0">Order ID: <strong>${order.id}</strong></div>
+        <div><strong>${order.student}</strong></div>
+        <div style="margin-top:8px">${order.items.map(it=>`<div style="display:flex;justify-content:space-between"><div>${it.name} x${it.qty}</div><div>KES ${(it.unit*it.qty).toFixed(2)}</div></div>`).join('')}</div>
+        <div class="totals" style="margin-top:8px"><div>Total</div><div>KES ${order.total.toFixed(2)}</div></div>
+        <div style="margin-top:8px" class="small">Payment: ${order.method} • Served: ${order.served? 'Yes' :'No'}</div>
+        <div style="display:flex;gap:8px;margin-top:12px">
+          ${allowServe? '<button id="markServed">Mark as Served</button>':''}
+          <button id="closeReceipt2" class="ghost">Close</button>
+        </div>`;
+      $('#receiptModal').classList.add('show');
+      if(allowServe){ $('#markServed').addEventListener('click',()=>{ toggleServed(order.id); }); }
+      $('#closeReceipt2').addEventListener('click',()=>{ $('#receiptModal').classList.remove('show'); });
+    }
+
+    function toggleServed(orderId){
+      const orders = loadOrders(); const ord = orders.find(o=>o.id===orderId); if(!ord) return; ord.served = true; saveOrders(orders); alert('Marked served'); $('#receiptModal').classList.remove('show'); }
+
+    // Admin flow
+    $('#adminBtn').addEventListener('click',()=>{ $('#adminModal').classList.add('show'); });
+    $('#adminCancel').addEventListener('click',()=>{ $('#adminModal').classList.remove('show'); });
+    $('#adminLogin').addEventListener('click',()=>{
+      const p = $('#adminPass').value; if(p==='admin123'){ $('#adminModal').classList.remove('show'); openAdminPanel(); } else alert('Wrong password');
+    });
+
+    function openAdminPanel(){
+      $('#adminPanelModal').classList.add('show'); renderAdminList();
+    }
+
+    $('#adminLogout').addEventListener('click',()=>{ $('#adminPanelModal').classList.remove('show'); });
+
+    function renderAdminList(){
+      const root = $('#adminList'); root.innerHTML='';
+      menu.forEach(it=>{
+        const el = document.createElement('div'); el.style.display='flex'; el.style.justifyContent='space-between'; el.style.alignItems='center'; el.style.padding='6px 0';
+        el.innerHTML = `<div><strong>${it.name}</strong> <div class="small">KES ${it.price.toFixed(2)} • ID ${it.id}</div></div>
+          <div style="display:flex;gap:6px;align-items:center">
+            <label class="small">Available <input type="checkbox" data-id="${it.id}" ${it.available? 'checked':''} /></label>
+            <button class="ghost" data-id="${it.id}" onclick="removeItem(${it.id})">Remove</button>
+          </div>`;
+        root.appendChild(el);
+      });
+      // wire up checkboxes
+      root.querySelectorAll('input[type=checkbox]').forEach(cb=>cb.addEventListener('change',e=>{
+        const id = Number(e.target.dataset.id); const it = menu.find(m=>m.id===id); it.available = e.target.checked; saveMenu(menu); renderMenu(); renderAdminList();
+      }));
+    }
+    // expose removeItem to window
+    window.removeItem = function(id){ if(!confirm('Remove item?')) return; menu = menu.filter(m=>m.id!==id); saveMenu(menu); renderMenu(); renderAdminList(); }
+
+    $('#addItem').addEventListener('click',()=>{
+      const name = $('#newItemName').value.trim(); const price = Number($('#newItemPrice').value);
+      if(!name || !price){ alert('Provide name and price'); return; }
+      const newid = menu.length? Math.max(...menu.map(m=>m.id))+1 : 1;
+      menu.push({id:newid,name,price,available:true,img:''}); saveMenu(menu); $('#newItemName').value=''; $('#newItemPrice').value=''; renderMenu(); renderAdminList();
+    });
+
+    // initial
+    renderMenu(); renderCart();
+
+    // helpful notes: clear localStorage keys to reset: cafeteria_menu, cafeteria_orders
+  </script>
+</body>
+</html>

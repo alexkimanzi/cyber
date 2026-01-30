@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html>
+<head>
+    
+    <title>Akhim Tech Solutions</title>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            background: greenyellow;
+            color: white;
+        }
+
+        /* Navbar */
+        header {
+            background: #ffffff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 15px 40px;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        nav a {
+            margin-left: 20px;
+            text-decoration: none;
+            color: #333;
+            font-weight: bold;
+        }
+
+        nav a:hover {
+            color: #0077ff;
+        }
+
+        /* Hero */
+        .hero {
+            display: flex;
+            flex-wrap: wrap;
+            padding: 60px 40px;
+            align-items: center;
+            background: rgb(86, 91, 141);
+        }
+
+        .hero-text {
+            flex: 1;
+            min-width: 300px;
+        }  
+
+        .hero-text h1 {
+            font-size: 40px;
+            margin: 0;
+        }
+
+        .hero-text p {
+            margin-top: 15px;
+            font-size: 17px;
+            color: #65db61;
+        }
+
+        .hero img {
+            flex: 1;
+            max-width: 500px;
+            width: 100%;
+            border-radius: 10px;
+        }
+
+        .btn {
+            margin-top: 20px;
+            padding: 12px 20px;
+            background: #0077ff;
+            color: white;
+            border-radius: 5px;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn:hover {
+            background: #005fcc;
+        }
+
+        /* Sections */
+        section {
+            padding: 60px 40px;
+        }
+
+        h2 {
+            margin-bottom: 10px;
+        }
+
+        .services-grid {
+            display: grid;
+            gap: 20px;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        }
+
+        .service-box {
+            background: blue;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
+
+        .team-grid {
+            display: grid;
+            gap: 20px;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        }
+
+        .team-box {
+            background: #c54141;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .team-box img {
+            width: 80px;
+            border-radius: 50%;
+        }
+
+        /* Contact Form */
+        form {
+            max-width: 600px;
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 12px;
+            margin-top: 12px;
+            border: 1px solid #cccccc;
+            border-radius: 5px;
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 20px;
+            background: #111;
+            color: #cccccc;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Navbar -->
+    <header>
+        <nav>
+            <div style="font-size: 20px; font-weight: bold;">Akhim Tech Solutions</div>
+            <div>
+                <a href="#services">Services</a>
+                <a href="#about">About</a>
+                <a href="#team">Team</a>
+                <a href="#contact">Contact</a>
+            </div>
+        </nav>
+    </header>
+
+    <!-- HERO -->
+    <div class="hero">
+        <div class="hero-text">
+            <h1> Here at Akhim tech solution We Build Modern Digital Solutions</h1>
+            <p>Professional web development, mobile apps, cloud systems & IT consultancy for businesses across Africa we also offer all type of the online applications</p>
+            <a class="btn" href="#contact">Get a Quote</a>
+        </div>
+
+        <img src="C:\Users\Joy X-Ray\Desktop\akhim tech\WhatsApp Image 2025-12-21 at 4.59.36 AM.jpeg"/>
+    </div>
+
+    <!-- SERVICES -->
+    <section id="services">
+        <h2>Our Services</h2>
+        <p>We offer complete technology and digital solutions for your business.</p>
+
+        <div class="services-grid">
+            <div class="service-box">
+                <h3>Web Development</h3>
+                <p>Responsive, fast & modern websites and systems.</p>
+            </div>
+
+            <div class="service-box">
+                <h3>Mobile Apps</h3>
+                <p>Android & iOS mobile applications for any business.</p>
+            </div>
+
+            <div class="service-box">
+                <h3>Cloud & DevOps</h3>
+                <p>Cloud hosting, automation & scalable infrastructure.</p>
+            </div>
+
+            <div class="service-box">
+                <h3>UI/UX Design</h3>
+                <p>High-quality user interface & experience design.</p>
+            </div>
+
+            <div class="service-box">
+                <h3>IT Consultancy</h3>
+                <p>We analyze, plan and guide your digital transformation.</p>
+            </div>
+
+            <div class="service-box">
+                <h3>System Maintenance</h3>
+                <p>Support, updates & continuous improvements.</p>
+            </div>
+        </div>     
+    </section>
+
+    <!-- ABOUT -->
+    <section id="about">
+        <h2>About Us</h2>
+        <p>Akhim Tech Solutions provides reliable and innovative digital solutions tailored for SMEs, enterprises, and startups.</p>
+    </section>
+
+    <!-- TEAM -->
+    <section id="team">
+        <h2>Meet Our Team</h2>
+
+        <div class="team-grid">
+            <div class="team-box">
+                <img src="C:\Users\Joy X-Ray\Pictures\Components of the Sy.png" />
+                <h3>mathew mike</h3>
+                <p>CEO</p>
+            </div>
+
+            <div class="team-box">
+                <img src="C:\Users\Joy X-Ray\Desktop\akhim tech\WhatsApp Image 2025-12-21 at 4.53.14 AM.jpeg" />
+                <h3>stephen obure</h3>
+                <p>Lead Engineer</p>
+            </div>
+
+            <div class="team-box">
+                <img src="C:\Users\Joy X-Ray\Desktop\akhim tech\9phyu70f.png" />
+                <h3> joy gatwiri</h3>
+                <p>Product Designer</p>
+            </div>
+
+            <div class="team-box">
+                <img src="C:\Users\Joy X-Ray\Desktop\akhim tech\Screenshot 2025-12-19 083610.png"/>
+                <h3>alex Kim</h3>
+                <p>DevOps Engineer</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- CONTACT -->
+    <section id="contact">
+        <h2>Contact Us</h2>
+
+        <form>
+            <input type="text" placeholder="Full Name" required />
+            <input type="email" placeholder="Email" required />
+            <textarea rows="5" placeholder="Tell us about your project..."></textarea>
+            <button class="btn" type="submit">Send Message</button>
+        </form>
+    </section>
+
+    <!-- FOOTER -->
+    <footer>
+        © 2025 Akhim Tech Solutions — All Rights Reserved
+    </footer>
+
+</body>
+</html>   

@@ -1,0 +1,135 @@
+  <?php
+session_start();
+$conn = new mysqli("localhost", "root", "", "online_jobs");
+if ($conn->connect_error) die("DB Error");
+
+// REGISTER
+if (isset($_POST['register'])) {
+    $name = $_POST['name'];
+    $email = $_POST['email'];
+    $pass = password_hash($_POST['password'], PASSWORD_DEFAULT);
+
+    $conn->query("INSERT INTO users(fullname,email,password)
+                  VALUES('$name','$email','$pass')");
+    $_SESSION['msg'] = "Registered successfully. Pay registration fee!";
+}
+
+// LOGIN
+if (isset($_POST['login'])) {
+    $email = $_POST['email'];
+    $pass = $_POST['password'];
+
+    $res = $conn->query("SELECT * FROM users WHERE email='$email'");
+    $row = $res->fetch_assoc();
+
+    if ($row && password_verify($pass, $row['password'])) {
+        $_SESSION['user'] = $row;
+    } else {
+        $_SESSION['msg'] = "Invalid login details";
+    }
+}
+
+// LOGOUT
+if (isset($_GET['logout'])) {
+    session_destroy();
+    header("Location: index.php");
+}
+?>
+
+<!DOCTYPE html>
+<html>
+<head>
+<title> @akhim Online Jobs Platform</title>
+<style>
+body {
+    font-family: Arial;
+    background: #f2f2f2;
+    padding: 20px;
+}
+.container {
+    background: white;
+    padding: 20px;
+    max-width: 500px;
+    margin: auto;
+}
+h1, h2 { text-align: center; }
+input, button {
+    width: 100%;
+    padding: 10px;
+    margin: 5px 0;
+}
+button {
+    background: green;
+    color: white;
+    border: none;
+}
+.msg {
+    color: red;
+    text-align: center;
+}
+.jobs li {
+    background: #eee;
+    margin: 5px;
+    padding: 10px;
+}
+</style>  
+</head>
+
+<body>
+<div class="container">
+
+<h1> @akhim ONLINE JOBS PLATFORM</h1>
+
+<?php if (isset($_SESSION['msg'])) { ?>
+<p class="msg"><?php echo $_SESSION['msg']; unset($_SESSION['msg']); ?></p>
+<?php } ?>
+
+<?php if (!isset($_SESSION['user'])) { ?>
+
+<h2>Register</h2>
+<form method="post">
+    <input type="text" name="name" placeholder="Full Name" required>
+    <input type="email" name="email" placeholder="Email" required>
+    <input type="password" name="password" placeholder="Password" required>
+    <button name="register">Register</button>
+</form>
+
+<hr>
+
+<h2>Login</h2>
+<form method="post">
+    <input type="email" name="email" placeholder="Email" required>
+    <input type="password" name="password" placeholder="Password" required>
+    <button name="login">Login</button>
+</form>
+
+<?php } else { 
+$user = $_SESSION['user'];
+?>
+
+<h2>Welcome, <?php echo $user['fullname']; ?></h2>
+
+<?php if ($user['paid'] == 'NO') { ?>
+<p class="msg">Account inactive</p>
+<p><b>Registration Fee:</b> KES 500</p>
+<p><b>M-Pesa:</b> 0791041451</p>
+<p>After payment, contact admin for activation.</p>
+
+<?php } else { ?>
+<h3>Available Online Jobs</h3>
+<ul class="jobs">
+    <li>📘 Academic Writing</li>
+    <li>🎮 Online Gaming</li>
+    <li>📝 Notes Summarizing</li>
+    <li>⌨ Notes Typing</li>
+    <li> question answering</li>
+</ul>
+<?php } ?>
+
+<a href="?logout=true"><button>Logout</button></a>
+
+<?php } ?>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Aviator </title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: linear-gradient(to bottom, #020617, #020617);
+      color: #fff;
+    }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px 20px;
+      background: #020617;
+      border-bottom: 1px solid #1e293b;
+    }
+    header h1 { font-size: 22px; }
+    nav button {
+      margin-left: 6px;
+      background: #1e293b;
+      color: #fff;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    nav button:hover { background: #334155; }
+
+    .container { padding: 20px; max-width: 1100px; margin: auto; }
+    .grid { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
+
+    .card {
+      background: #020617;
+      border: 1px solid #1e293b;
+      border-radius: 14px;
+      padding: 20px;
+    }
+
+    .game-box {
+      position: relative;
+      height: 260px;
+      background: black;
+      border-radius: 14px;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .plane {
+      font-size: 50px;
+      position: absolute;
+      left: 20px;
+      bottom: 40px;
+      transition: transform 0.12s linear;
+    }
+
+    .multiplier {
+      position: absolute;
+      bottom: 15px;
+      right: 20px;
+      font-size: 26px;
+      font-weight: bold;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      border-radius: 8px;
+      border: none;
+    }
+
+    .actions { display: flex; gap: 10px; margin-top: 12px; }
+
+    .btn {
+      flex: 1;
+      padding: 12px;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .btn-bet { background: #22c55e; color: #000; }
+    .btn-cash { background: #ef4444; color: #fff; }
+
+    ul { padding-left: 18px; }
+    footer {
+      text-align: center;
+      font-size: 12px;
+      color: #94a3b8;
+      padding: 20px;
+    }
+
+    @media (max-width: 768px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Aviator  ✈️</h1>
+  <div>Balance: <strong id="balance">1000</strong> KSH</div>
+  <nav>
+    <button onclick="showPage('game')">Game</button>
+    <button onclick="showPage('login')">Login</button>
+    <button onclick="showPage('register')">Register</button>
+    <button onclick="showPage('wallet')">Wallet</button>
+    <button onclick="logout()">Logout</button>
+  </nav>
+</header>
+
+<div class="container">
+
+  <!-- GAME PAGE -->
+  <div id="page-game">
+    <div class="grid">
+      <div class="card">
+        <div class="game-box">
+          <div class="plane" id="plane">✈️</div>
+          <div class="multiplier" id="multiplier">1.00x</div>
+        </div>
+
+        <input type="number" id="bet" value="100" />
+        <div class="actions">
+          <button class="btn btn-bet" onclick="startGame()">BET</button>
+          <button class="btn btn-cash" onclick="cashOut()">CASH OUT</button>
+        </div>
+      </div>
+
+      <div class="card">
+  <h3>Last Rounds</h3>
+  <ul id="history"></ul>
+  <hr style="border:1px solid #1e293b; margin:15px 0;" />
+  <h3>Live Bets</h3>
+  <ul id="liveBets"></ul>
+  <hr style="border:1px solid #1e293b; margin:15px 0;" />
+  <h3>Signals </h3>
+  <ul id="signals">
+    <li>Expected Cashout: <strong>1.85x</strong></li>
+    <li>Trend: <span style="color:#22c55e">Rising</span></li>
+    <li>Risk: Medium</li>
+  </ul>
+</div>
+    </div>
+  </div>
+
+  <!-- LOGIN PAGE -->
+  <div id="page-login" style="display:none; max-width:400px; margin:auto;">
+    <div class="card">
+      <h3>Login</h3>
+      <input id="loginUser" placeholder="Username" />
+      <input id="loginPass" type="password" placeholder="Password" />
+      <button class="btn btn-bet" onclick="login()">Login</button>
+    </div>
+  </div>
+
+  <!-- REGISTER PAGE -->
+  <div id="page-register" style="display:none; max-width:400px; margin:auto;">
+    <div class="card">
+      <h3>Register</h3>
+      <input id="regUser" placeholder="Username" />
+      <input id="regPass" type="password" placeholder="Password" />
+      <button class="btn btn-bet" onclick="register()">Create Account</button>
+    </div>
+  </div>
+
+  <!-- WALLET PAGE -->
+  <div id="page-wallet" style="display:none; max-width:400px; margin:auto;">
+    <div class="card">
+      <h3>Wallet</h3>
+      <p>Balance: <strong id="walletBalance">0</strong> KSH</p>
+      <button class="btn btn-bet" onclick="addksh()">Deposit </button>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+
+</footer>
+
+<script>
+  let balance = 1000;
+  let multiplier = 1.0;
+  let flying = true;
+  let betAmount = 100;
+  let crashAt = 1.5;
+  let interval;
+  let currentUser = localStorage.getItem('user') || null;
+
+  const plane = document.getElementById('plane');
+  const betInput = document.getElementById('bet');
+const walletBalanceEl = document.getElementById('walletBalance');
+const adminUsersEl = document.getElementById('adminUsers');
+const liveBetsEl = document.getElementById('liveBets');
+
+  const multiplierEl = document.getElementById('multiplier');
+  const balanceEl = document.getElementById('balance');
+  const historyEl = document.getElementById('history');
+
+  function showPage(page) {
+    document.querySelectorAll('[id^="page-"]').forEach(p => p.style.display = 'none');
+    document.getElementById('page-' + page).style.display = 'block';
+  }
+
+  function logout() {
+    localStorage.removeItem('user');
+    currentUser = null;
+    alert('Logged out');
+    showPage('login');
+  }
+
+  function register() {
+    const u = regUser.value;
+    const p = regPass.value;
+    if (!u || !p) return alert('Fill all fields');
+    localStorage.setItem('account_' + u, JSON.stringify({ user: u, pass: p, balance: 1000 }));
+    alert('Account created');
+    showPage('login');
+  }
+
+  function login() {
+    const u = loginUser.value;
+    const p = loginPass.value;
+    const data = JSON.parse(localStorage.getItem('account_' + u));
+    if (!data || data.pass !== p) return alert('Invalid login');
+    currentUser = u;
+    balance = data.balance;
+    balanceEl.textContent = balance;
+    localStorage.setItem('user', u);
+    showPage('game');
+  }
+
+  function saveUser() {
+    if (!currentUser) return;
+    const data = JSON.parse(localStorage.getItem('account_' + currentUser));
+    data.balance = balance;
+    localStorage.setItem('account_' + currentUser, JSON.stringify(data));
+  }
+
+  function startGame() {
+    if (!currentUser) return alert('Login required');
+    betAmount = Number(bet.value);
+    if (flying || betAmount <= 0 || betAmount > balance) return;
+
+    balance -= betAmount;
+    balanceEl.textContent = balance;
+    saveUser();
+
+    multiplier = 1.0;
+    crashAt = (Math.random() * 4 + 1.2).toFixed(2);
+    plane.style.transform = 'translate(0,0)';
+
+    interval = setInterval(() => {
+      multiplier += 0.05;
+      multiplierEl.textContent = multiplier.toFixed(2) + 'x';
+      plane.style.transform =
+  `translate(${multiplier * 25}px, ${-Math.min(multiplier * 12, 160)}px)`;
+
+      if (multiplier >= crashAt) endRound(crashAt + 'x');
+    }, 120);
+  }
+
+  function cashOut() {
+    if (!flying) return;
+    const win = Math.floor(betAmount * multiplier);
+    balance += win;
+    balanceEl.textContent = balance;
+    saveUser();
+    endRound(multiplier.toFixed(2) + 'x (cashout)');
+  }
+
+  function endRound(result) {
+    clearInterval(interval);
+    flying = true;
+    const li = document.createElement('li');
+    li.textContent = result;
+    historyEl.prepend(li);
+    if (historyEl.children.length > 10) historyEl.removeChild(historyEl.lastChild);
+  }
+
+  if (currentUser) {
+    const data = JSON.parse(localStorage.getItem('account_' + currentUser));
+    balance = data.balance;
+    balanceEl.textContent = balance;
+  }
+
+  // FAKE LIVE BETS FEED
+  const names = ['Alex','Brian','James','Kevin','Moh','Sarah','Liam','Noah','Emma','Olivia'];
+  setInterval(() => {
+    const li = document.createElement('li');
+    const name = names[Math.floor(Math.random()*names.length)];
+    const amt = Math.floor(Math.random()*900+50);
+    const x = (Math.random()*4+1.2).toFixed(2);
+    li.textContent = name + ' bet ' + amt + ' → ' + x + 'x';
+    liveBets.prepend(li);
+    if (liveBets.children.length > 6) liveBets.removeChild(liveBets.lastChild);
+  }, 1800);
+</script>
+
+<div id="page-wallet" class="page" style="display:none">
+  <div class="card">
+    <h2>Wallet (Demo)</h2>
+    <p>Balance: <strong id="walletBalance">0</strong></p>
+    <input type="number" id="walletAmount" placeholder="Amount" />
+    <br /><br />
+    <button onclick="deposit()">Deposit</button>
+    <button onclick="withdraw()">Withdraw</button>
+  </div>
+</div>
+
+<div id="page-admin" class="page" style="display:none
+  <div class="card">
+  
+    <h2>Admin Dashboard </h2>
+    
+    <ul id="adminUsers"></ul>
+    
+  </div>
+</div>
+</body>
+</html>

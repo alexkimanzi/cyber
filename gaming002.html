@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Simple Game</title>
+
+  <!-- CSS RULES -->
+  <style>
+    /* Page layout */
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #111827;
+      color: #f9fafb;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      min-height: 100vh;
+    }
+
+    header {
+      width: 100%;
+      padding: 10px 20px;
+      box-sizing: border-box;
+      background: #1f2937;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    header h1 {
+      font-size: 20px;
+      margin: 0;
+    }
+
+    .btn {
+      padding: 6px 12px;
+      border-radius: 4px;
+      border: none;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .btn-primary {
+      background: #2563eb;
+      color: #ffffff;
+    }
+
+    .btn-primary:hover {
+      background: #1d4ed8;
+    }
+
+    main {
+      padding: 20px;
+      box-sizing: border-box;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+    }
+
+    #info {
+      text-align: center;
+      font-size: 14px;
+    }
+
+    /* Game area */
+    #gameCanvas {
+      background: #1f2937;
+      border: 2px solid #facc15;
+      display: block;
+      max-width: 100%;
+    }
+
+    /* Toast notifications */
+    .toast {
+      position: fixed;
+      right: 20px;
+      bottom: 20px;
+      background: #111827;
+      color: #ffffff;
+      padding: 10px 16px;
+      border-radius: 4px;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: opacity 0.25s, transform 0.25s;
+      z-index: 1000;
+      font-size: 14px;
+    }
+
+    .toast-visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .toast-success {
+      background: #16a34a;
+    }
+
+    .toast-info {
+      background: #2563eb;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Simple Box Game</h1>
+    <button id="btnStart" class="btn btn-primary">Start / Restart</button>
+  </header>
+
+  <main>
+    <p id="info">
+      Use the <strong>arrow keys</strong> to move the player (yellow box).<br>
+      Avoid the red enemy box. Score increases over time.
+    </p>
+
+    <!-- GAME AREA -->
+    <canvas id="gameCanvas" width="800" height="400"></canvas>
+    <p>Score: <span id="scoreValue">0</span></p>
+  </main>
+
+  <!-- JAVASCRIPT RULES -->
+  <script>
+    // Get elements
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    const btnStart = document.getElementById("btnStart");
+    const scoreValue = document.getElementById("scoreValue");
+
+    // Game state
+    let player;
+    let enemy;
+    let keys = {};
+    let score = 0;
+    let running = false;
+    let lastTime = 0;
+
+    // Player and enemy rules
+    function createInitialState() {
+      player = {
+        x: 60,
+        y: canvas.height / 2 - 20,
+        w: 40,
+        h: 40,
+        speed: 4,
+        color: "#facc15"
+      };
+
+      enemy = {
+        x: canvas.width - 80,
+        y: canvas.height / 2 - 20,
+        w: 40,
+        h: 40,
+        speedX: -3,
+        speedY: 2,
+        color: "#ef4444"
+      };
+
+      score = 0;
+      scoreValue.textContent = score;
+    }
+
+    // Keyboard rules
+    window.addEventListener("keydown", (e) => {
+      keys[e.key] = true;
+    });
+
+    window.addEventListener("keyup", (e) => {
+      keys[e.key] = false;
+    });
+
+    // Toast helper
+    function showToast(message, type = "info") {
+      const toast = document.createElement("div");
+      toast.className = "toast toast-" + type;
+      toast.textContent = message;
+      document.body.appendChild(toast);
+
+      requestAnimationFrame(() => {
+        toast.classList.add("toast-visible");
+      });
+
+      setTimeout(() => {
+        toast.classList.remove("toast-visible");
+        setTimeout(() => toast.remove(), 300);
+      }, 2500);
+    }
+
+    // Collision rule
+    function isColliding(a, b) {
+      return !(
+        a.x + a.w < b.x ||
+        a.x > b.x + b.w ||
+        a.y + a.h < b.y ||
+        a.y > b.y + b.h
+      );
+    }
+
+    // Update positions
+    function update(delta) {
+      // Move player with arrow keys
+      if (keys["ArrowUp"])    player.y -= player.speed;
+      if (keys["ArrowDown"])  player.y += player.speed;
+      if (keys["ArrowLeft"])  player.x -= player.speed;
+      if (keys["ArrowRight"]) player.x += player.speed;
+
+      // Keep player inside canvas
+      if (player.x < 0) player.x = 0;
+      if (player.y < 0) player.y = 0;
+      if (player.x + player.w > canvas.width) {
+        player.x = canvas.width - player.w;
+      }
+      if (player.y + player.h > canvas.height) {
+        player.y = canvas.height - player.h;
+      }
+
+      // Enemy movement
+      enemy.x += enemy.speedX;
+      enemy.y += enemy.speedY;
+
+      // Bounce enemy on walls
+      if (enemy.x < 0 || enemy.x + enemy.w > canvas.width) {
+        enemy.speedX *= -1;
+      }
+      if (enemy.y < 0 || enemy.y + enemy.h > canvas.height) {
+        enemy.speedY *= -1;
+      }
+
+      // Increase score over time (delta ms)
+      score += delta * 0.01;
+      scoreValue.textContent = Math.floor(score);
+
+      // Check collision
+      if (isColliding(player, enemy)) {
+        running = false;
+        showToast("Game Over! Score: " + Math.floor(score), "success");
+      }
+    }
+
+    // Draw everything
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Background grid
+      ctx.fillStyle = "#111827";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Player
+      ctx.fillStyle = player.color;
+      ctx.fillRect(player.x, player.y, player.w, player.h);
+
+      // Enemy
+      ctx.fillStyle = enemy.color;
+      ctx.fillRect(enemy.x, enemy.y, enemy.w, enemy.h);
+    }
+
+    // Main loop
+    function loop(timestamp) {
+      if (!running) return;
+
+      const delta = timestamp - lastTime;
+      lastTime = timestamp;
+
+      update(delta);
+      draw();
+
+      requestAnimationFrame(loop);
+    }
+
+    // Start / restart rule
+    btnStart.addEventListener("click", () => {
+      createInitialState();
+      running = true;
+      lastTime = performance.now();
+      showToast("Game started!", "info");
+      requestAnimationFrame(loop);
+    });
+
+    // Initial setup
+    createInitialState();
+  </script>
+</body>
+</html>

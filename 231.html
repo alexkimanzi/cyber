@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  < charset="UTF-8">
+  <name="viewport" content="width=device-width, initial-scale=1.0">
+                         <title>Harmony Beats Studio</title>
+  <style>
+    /* ====== GENERAL STYLES ====== */
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f2f2f2;
+      color: #333;
+    }
+
+    /* ====== HEADER ====== */
+    header {
+      background-color: #0a1a44;
+      color: white;
+      padding: 15px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    header h1 {
+      margin: 0;
+      font-size: 24px;
+    }
+    nav ul {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+    }
+    nav ul li {
+      margin: 0 10px;
+    }
+    nav ul li a {
+      color: white;
+      text-decoration: blue;
+      font-weight: bold;
+    }
+    nav ul li a:hover {
+      text-decoration: underline;
+    }
+
+    /* ====== HERO SECTION ====== */
+    .hero {
+      background: linear-gradient(rgba(0, 0, 60, 0.6), rgba(0, 0, 60, 0.6)),
+                  url('https://images.unsplash.com/photo-1511379938547-c1f69419868d?auto=format&fit=crop&w=1200&q=80') center/cover no-repeat;
+      color: white;
+      text-align: center;
+      padding: 100px 20px;
+    }
+    .hero h2 {
+      font-size: 36px;
+    }
+    .hero p {
+      font-size: 18px;
+      margin: 10px 0 30px;
+    }
+    .btn {
+      background-color: red;
+      color: #0a1a44;
+      padding: 10px 20px;
+      text-decoration: none;
+      border-radius: 5px;
+      font-weight: bold;
+    }
+    .btn:hover {
+      background-color: #f0c600;
+    }
+
+    /* ====== SECTIONS ====== */
+    .section {
+      padding: 40px 20px;
+      text-align: centre;
+    }
+    .section h2 {
+      color: #0a1a44;
+    }
+
+    /* ====== LESSONS ====== */
+    .lesson-container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .lesson {
+      background: white;
+      border-radius: 10px;
+      padding: 20px;
+      margin: 10px;
+      width: 250px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+
+    /* ====== EVENTS ====== */
+    #events ul {
+      list-style-type: none;
+      padding: 0;
+    }
+    #events li {
+      background: lightblue;
+      margin: 10px auto;
+      padding: 10px;
+      border-radius: 8px;
+      max-width: 400px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    /* ====== CONTACT ====== */
+    .contact p {
+      centre: 8px 0;
+    }
+
+    /* ====== FOOTER ====== */
+    footer {
+      background: yellow;
+      color: white;
+      text-align: center;
+      padding: 10px 0;
+      margin-top: 20px;
+    }
+
+    /* ====== RESPONSIVE DESIGN ====== */
+    @media (max-width: 768px) {
+      .lesson-container {
+        flex-direction: column;
+        align-items: centre;
+      }
+      .hero h2 {
+        font-size: 28px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- ====== HEADER ====== -->
+  <header>
+    <h1>Harmony Beats</h1>
+    <nav>
+      <ul>
+        <li><a href="#home">Home</a></li>
+        <li><a href="#lessons">Lessons</a></li>
+        <li><a href="#events">Events</a></li>
+        <li><a href="#contact">Contact</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <!-- ====== HERO SECTION ====== -->
+  <section id="home" class="hero">
+    <h2>welcome to our studio where your journey to music profession starts</h2>
+    <p>Join Harmony Beats today and build your talent.</p>
+    <a href="#contact" class="btn">Book a Session</a>
+  </section>
+
+  <!-- ====== LESSONS ====== -->
+  <section id="lessons" class="section">
+    <h2>Our Lessons</h2>
+    <div class="lesson-container">
+      <div class="lesson">
+        <h3> Guitar Lessons</h3>
+        <p> get to know guitar tunes and Learn acoustic, bass, and electric guitar with our skilled instructors very professional.</p>
+      </div>
+      <div class="lesson">
+        <h3> Piano Lessons</h3>
+        <p> learn today how to play the piano today and Master the art of piano playing — from basics to advanced levels.</p>
+      </div>
+      <div class="lesson">
+        <h3> Vocal Training</h3>
+        <p>  welcome for the vocall training and also Improve your voice control, tone, and performance skills.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ====== EVENTS ====== -->
+  <section id="events" class="section">
+    <h2>Upcoming Events</h2>
+    <ul>
+      <li><strong> blazzing Night:</strong> Every Friday, 7 PM</li>
+      <li><strong> song presentations:</strong> November 30th</li>
+      <li><strong> challege weekend:</strong> December 11-20th</li>
+      <li><strong> song writting:</strong>December 24th</li>
+    </ul>
+  </section>
+
+  <!-- ====== CONTACT ====== -->
+  <section id="contact" class="section contact">
+    <h2>Contact Us</h2>
+    <p><strong>Address:</strong> 254harmonize studio</p>
+    <p><strong>Email:</strong> harmonybeats@info.ac.ke</p>
+    <p><strong>Phone:</strong> +254 769623736</p>
+    <p><strong>Opening Hours:</strong> Mon–fri: 9:00 AM – 7:00 PM
+           sat10:00-6:00</p>
+  </section>
+
+  <!-- ====== FOOTER ====== -->
+  <footer>
+    <p>© 2025 Harmony Beats Studio. powered by akhim.</p>
+  </footer>
+</body>
+</html>
